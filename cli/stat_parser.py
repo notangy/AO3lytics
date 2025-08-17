@@ -126,7 +126,8 @@ def get_stats(session):
 
     stat_box = stat_soup.find("ul", class_="statistics index group")
 
-    stat_items = stat_box.findChildren("ul", attrs={"class": "index group"})
+    # class=None is a required check; otherwise we only grab the first stat entry
+    stat_items = stat_box.findChildren("dl", attrs={"class": None})
 
     for item in stat_items:
         # These are the actual stats for each work
@@ -154,6 +155,7 @@ def get_stats(session):
             .text.replace("(", "")
             .replace("words)", "")
             .replace(",", "")
+            .strip()
         )
 
         child_stats = item.find("dl")
