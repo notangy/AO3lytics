@@ -1,9 +1,11 @@
+import json
 import re
 import requests
 from bs4 import BeautifulSoup
 import time
 import os
 from dotenv import load_dotenv
+from dataclasses import dataclass, asdict
 
 load_dotenv()
 
@@ -21,28 +23,22 @@ all_works = []
 # Each story is a work
 
 
+@dataclass
 class Work:
-    def __init__(
-        self,
-        id,
-        title,
-        fandoms,
-        kudos,
-        word_count,
-        hits,
-        subscriptions,
-        bookmarks,
-        comment_threads,
-    ):
-        self.title = title
-        self.id = id
-        self.age = fandoms
-        self.kudos = kudos
-        self.word_count = word_count
-        self.hits = hits
-        self.subscriptions = subscriptions
-        self.bookmarks = bookmarks
-        self.comment_threads = comment_threads
+    id: str
+    title: str
+    fandoms: list
+    kudos: int
+    word_count: int
+    hits: int
+    subscriptions: int
+    bookmarks: int
+    comment_threads: int
+
+    # Convert object list to dict for json export
+    def to_dict(self):
+        data = asdict(self)
+        return data
 
 
 # Built in retries & backoff
@@ -161,37 +157,38 @@ def get_stats(session):
         )
 
         child_stats = item.find("dl")
+
         try:
             sub_count = child_stats.find("dd", attrs={"class": "subscriptions"}).text
         except AttributeError:
             # For when a work doesn't have any subscriptions yet.
             sub_count = 0
-            hits = child_stats.find("dd", attrs={"class": "hits"}).text.replace(",", "")
-            kudos = child_stats.find("dd", attrs={"class": "kudos"}).text.replace(
-                ",", ""
-            )
-            comment_threads = child_stats.find(
-                "dd", attrs={"class": "comments"}
-            ).text.replace(",", "")
-            bookmarks = child_stats.find(
-                "dd", attrs={"class": "bookmarks"}
-            ).text.replace(",", "")
 
-        # Get the global stats too.
+        hits = child_stats.find("dd", attrs={"class": "hits"}).text.replace(",", "")
+        kudos = child_stats.find("dd", attrs={"class": "kudos"}).text.replace(",", "")
+        comment_threads = child_stats.find(
+            "dd", attrs={"class": "comments"}
+        ).text.replace(",", "")
+        bookmarks = child_stats.find("dd", attrs={"class": "bookmarks"}).text.replace(
+            ",", ""
+        )
+
+        # TODO Add global stats to export
+
         # global_statbox = stat_soup.find('dl', attrs={'class': 'statistics meta group'})
-        # metrics.ao3_user_threads.set(int(global_statbox.find('dd', attrs={'class': 'comment thread count'}).text.replace(',', '')))
-        # metrics.ao3_user_wordcount.set(int(global_statbox.find('dd', attrs={'class': 'words'}).text.replace(',', '')))
-        # metrics.ao3_user_hits.set(int(global_statbox.find('dd', attrs={'class': 'hits'}).text.replace(',', '')))
-        # #metrics.user_subs.set(int(global_statbox.find('dd', attrs={'class': 'subscriptions'}).text.replace(',', '')))
-        # metrics.ao3_user_kudos.set(int(global_statbox.find('dd', attrs={'class': 'kudos'}).text.replace(',', '')))
-        # metrics.ao3_user_bookmarks.set(int(global_statbox.find('dd', attrs={'class': 'bookmarks'}).text.replace(',', '')))
-        # metrics.ao3_user_global_subs.set(int(global_statbox.find('dd', attrs={'class': 'user subscriptions'}).text.replace(',', '')))
+        # user_threads = global_statbox.find('dd', attrs={'class': 'comment thread count'}).text.replace(',', '')
+        # user_wordcount = global_statbox.find('dd', attrs={'class': 'words'}).text.replace(',', '')
+        # user_hits = global_statbox.find('dd', attrs={'class': 'hits'}).text.replace(',', '')
+        # user_subs = global_statbox.find('dd', attrs={'class': 'subscriptions'}).text.replace(',', '')
+        # user_kudos = global_statbox.find('dd', attrs={'class': 'kudos'}).text.replace(',', '')
+        # user_bookmarks = global_statbox.find('dd', attrs={'class': 'bookmarks'}).text.replace(',', '')
+        # global_subs = global_statbox.find('dd', attrs={'class': 'user subscriptions'}).text.replace(',', '')
 
         # Now that we've gathered all the stats of a given work...
 
         work = Work(
-            title,
             work_id,
+            title,
             fandom,
             kudos,
             word_count,
@@ -201,6 +198,12 @@ def get_stats(session):
             comment_threads,
         )
         all_works.append(work)
+
+    works_dicts = [work.to_dict() for work in all_works]
+
+    # Eventually this info will be pushed to a database, but for now I just want it in a file
+    with open("works.json", "w", encoding="utf-8") as f:
+        json.dump(works_dicts, f, indent=4)
 
 
 if __name__ == "__main__":
