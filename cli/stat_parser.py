@@ -20,9 +20,11 @@ login_url = base_url + "/users/login"
 
 all_works = []
 
+# used for adding timestamp to file names
+timestamp = time.strftime("%Y-%m-%d_%H-%M-%S")
+
+
 # Each story is a work
-
-
 @dataclass
 class Work:
     id: str
@@ -36,6 +38,22 @@ class Work:
     comment_threads: int
 
     # Convert object list to dict for json export
+    def to_dict(self):
+        data = asdict(self)
+        return data
+
+
+# save global stats here
+@dataclass
+class User:
+    user_subscriptions: int
+    kudos: int
+    comment_threads: int
+    bookmarks: int
+    subscriptions: int
+    word_count: int
+    hits: int
+
     def to_dict(self):
         data = asdict(self)
         return data
@@ -124,6 +142,43 @@ def get_stats(session):
     # using lxml for faster parsing
     stat_soup = BeautifulSoup(stats_request.text, "lxml")
 
+    # Global stats handled here
+
+    global_statbox = stat_soup.find("dl", attrs={"class": "statistics meta group"})
+    user_threads = global_statbox.find(
+        "dd", attrs={"class": "comment thread count"}
+    ).text.replace(",", "")
+    user_wordcount = global_statbox.find("dd", attrs={"class": "words"}).text.replace(
+        ",", ""
+    )
+    user_hits = global_statbox.find("dd", attrs={"class": "hits"}).text.replace(",", "")
+    user_subs = global_statbox.find(
+        "dd", attrs={"class": "subscriptions"}
+    ).text.replace(",", "")
+    user_kudos = global_statbox.find("dd", attrs={"class": "kudos"}).text.replace(
+        ",", ""
+    )
+    user_bookmarks = global_statbox.find(
+        "dd", attrs={"class": "bookmarks"}
+    ).text.replace(",", "")
+    global_subs = global_statbox.find(
+        "dd", attrs={"class": "user subscriptions"}
+    ).text.replace(",", "")
+
+    user = User(
+        global_subs,
+        user_kudos,
+        user_threads,
+        user_bookmarks,
+        user_subs,
+        user_wordcount,
+        user_hits,
+    )
+
+    # save user stats to file
+    with open(f"{timestamp}_user_stats.json", "w", encoding="utf-8") as f:
+        json.dump(user.to_dict(), f, indent=4)
+
     stat_box = stat_soup.find("ul", class_="statistics index group")
 
     # class=None is a required check; otherwise we only grab the first stat entry
@@ -175,17 +230,6 @@ def get_stats(session):
             ",", ""
         )
 
-        # TODO Add global stats to export
-
-        # global_statbox = stat_soup.find('dl', attrs={'class': 'statistics meta group'})
-        # user_threads = global_statbox.find('dd', attrs={'class': 'comment thread count'}).text.replace(',', '')
-        # user_wordcount = global_statbox.find('dd', attrs={'class': 'words'}).text.replace(',', '')
-        # user_hits = global_statbox.find('dd', attrs={'class': 'hits'}).text.replace(',', '')
-        # user_subs = global_statbox.find('dd', attrs={'class': 'subscriptions'}).text.replace(',', '')
-        # user_kudos = global_statbox.find('dd', attrs={'class': 'kudos'}).text.replace(',', '')
-        # user_bookmarks = global_statbox.find('dd', attrs={'class': 'bookmarks'}).text.replace(',', '')
-        # global_subs = global_statbox.find('dd', attrs={'class': 'user subscriptions'}).text.replace(',', '')
-
         # Now that we've gathered all the stats of a given work...
 
         work = Work(
@@ -204,7 +248,7 @@ def get_stats(session):
     works_dicts = [work.to_dict() for work in all_works]
 
     # Eventually this info will be pushed to a database, but for now I just want it in a file
-    with open("works.json", "w", encoding="utf-8") as f:
+    with open(f"{timestamp}_work_stats.json", "w", encoding="utf-8") as f:
         json.dump(works_dicts, f, indent=4)
 
 
