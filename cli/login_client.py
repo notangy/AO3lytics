@@ -1,15 +1,8 @@
 import requests
 import time
 from bs4 import BeautifulSoup
-import os
-
-from ao3lytics import BASE_URL, USERNAME, safe_request
-
-
-PASSWORD = os.getenv("AO3_PASSWORD", "")
-
-LOGIN_URL = BASE_URL + "/users/login"
-USERS_URL = BASE_URL + "/users/" + USERNAME
+from utils import safe_request
+from consts import LOGIN_URL, USERNAME, PASSWORD, safe_request
 
 
 def login(session):

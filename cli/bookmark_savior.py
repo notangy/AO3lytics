@@ -1,20 +1,16 @@
-import json
-import re
 import requests
 from bs4 import BeautifulSoup
-import time
-import os
+
 from dataclasses import dataclass, asdict
 
-from ao3lytics import USERS_URL, safe_request
+from consts import USERS_URL
+
+from utils import safe_request
 
 # Like stat parser, but it saves bookmarks :D
 # If a work is deleted from the source, this will at least hold details about what was there.
 
 all_bookmarks = []
-
-# used for adding timestamp to file names
-timestamp = time.strftime("%Y-%m-%d_%H-%M-%S")
 
 MAX_PAGES = 3
 
@@ -39,12 +35,13 @@ class Bookmark:
         data = asdict(self)
         return data
 
-
-def get_bookmarks(session):
     """
     This one will require some rate-limiting handling...
     If you have many bookmarks, we'll only try to grab the first three pages by default. To increase this limit, change the variable MAX_PAGES
     """
+
+
+def get_bookmarks(session):
 
     bookmarks_url = USERS_URL + "/bookmarks"
 
@@ -62,6 +59,8 @@ def get_bookmarks(session):
     if bookmark_soup.find("a", string="Next"):
         next_page = True
 
+    print(next_page)
     # save bookmarks to file
-    with open(f"./stat_output/{timestamp}_bookmarks.json", "w", encoding="utf-8") as f:
-        json.dump(all_bookmarks.to_dict(), f, indent=4)
+    # print(f"[INFO] Bookmarks gathered. Now writing to file.")
+    # with open(f"./stat_output/{TIMESTAMP}_bookmarks.json", "w", encoding="utf-8") as f:
+    #     json.dump(all_bookmarks.to_dict(), f, indent=4)

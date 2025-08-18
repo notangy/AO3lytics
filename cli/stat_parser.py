@@ -2,17 +2,13 @@ import json
 import re
 import requests
 from bs4 import BeautifulSoup
-import time
 
 from dataclasses import dataclass, asdict
 
-from ao3lytics import USERS_URL, USERNAME, safe_request
-
+from consts import USERS_URL, TIMESTAMP
+from utils import safe_request
 
 all_works = []
-
-# used for adding timestamp to file names
-timestamp = time.strftime("%Y-%m-%d_%H-%M-%S")
 
 
 # Each story is a work
@@ -102,7 +98,7 @@ def get_stats(session):
     )
 
     # save user stats to file
-    with open(f"{timestamp}_user_stats.json", "w", encoding="utf-8") as f:
+    with open(f"{TIMESTAMP}_user_stats.json", "w", encoding="utf-8") as f:
         json.dump(user.to_dict(), f, indent=4)
 
     stat_box = stat_soup.find("ul", class_="statistics index group")
@@ -173,7 +169,7 @@ def get_stats(session):
 
     works_dicts = [work.to_dict() for work in all_works]
 
-    print(f"[INFO] Stats gathered for {timestamp}. Now writing to file.")
+    print(f"[INFO] Stats gathered for {TIMESTAMP}. Now writing to file.")
     # Eventually this info will be pushed to a database, but for now I just want it in a file
-    with open(f"./stat_output/{timestamp}_work_stats.json", "w", encoding="utf-8") as f:
+    with open(f"./stat_output/{TIMESTAMP}_work_stats.json", "w", encoding="utf-8") as f:
         json.dump(works_dicts, f, indent=4)
