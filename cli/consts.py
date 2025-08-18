@@ -1,3 +1,4 @@
+from datetime import date
 import os
 import time
 
@@ -71,3 +72,9 @@ class WorkDetails(Work):
     summary: str
     current_chapters: str
     language: str
+    date_updated: str
+
+
+@dataclass
+class Bookmark(WorkDetails):
+    date_saved: str

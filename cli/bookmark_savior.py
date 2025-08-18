@@ -5,7 +5,7 @@ import requests
 from bs4 import BeautifulSoup
 
 
-from consts import BASE_URL, USERS_URL, TIMESTAMP, WorkDetails
+from consts import BASE_URL, USERS_URL, TIMESTAMP, Bookmark
 
 from utils import safe_request, extract_work_id
 
@@ -15,8 +15,8 @@ from utils import safe_request, extract_work_id
 
 all_bookmarks = []
 
-MAX_PAGES = 3
-
+MAX_PAGES = 5  # Default value to prevent overload on AO3.
+# Change if you have more than 5 pages to save, but be prepared to run into rate limits...
 
 """
 This one will require some rate-limiting handling...
@@ -47,6 +47,7 @@ def gather_tags(soup, target_class):
 def parse_bookmark_html(soup):
     # title & author heading
     heading = soup.find("h4", class_="heading")
+
     links = heading.find_all("a")
     # First <a> = title
     title = links[0].get_text(strip=True)
@@ -87,7 +88,12 @@ def parse_bookmark_html(soup):
 
     current_chapters = safe_text(soup, "dd.chapters")
 
-    bookmark = WorkDetails(
+    dates = soup.find_all("p", class_="datetime")
+
+    date_updated = dates[0].text
+    date_saved = dates[1].text
+
+    bookmark = Bookmark(
         work_id,
         title,
         fandoms,
@@ -105,6 +111,8 @@ def parse_bookmark_html(soup):
         summary,
         current_chapters,
         language,
+        date_updated,
+        date_saved,
     )
 
     all_bookmarks.append(bookmark)
@@ -114,6 +122,7 @@ def parse_bookmark_page(session, url, current_page):
 
     if current_page > MAX_PAGES:
         return True  # stop recursion if max pages reached
+    print(f"[INFO] Searching bookmarks: page {current_page}.")
 
     bookmarks_request = safe_request(session, url, current_page)
     if bookmarks_request.status_code != 200:
@@ -126,18 +135,18 @@ def parse_bookmark_page(session, url, current_page):
     for b in bookmarks:
         parse_bookmark_html(b)
 
-    next_elem = bookmark_soup.find("a", string=re.compile(r"^\s*Next"))
-    # If the 'Next ->' button is a link, more than one page exists
-    if next_elem and current_page <= MAX_PAGES:
-        next_link = next_elem["href"]
-        current_page += 1
-        time.sleep(5)  # trying to prevent rate limiting...
-        parse_bookmark_page(session, BASE_URL + next_link, current_page)
+        next_elem = bookmark_soup.find("a", string=re.compile(r"^\s*Next"))
+        # If the 'Next ->' button is a link, more than one page exists
+        if next_elem and current_page <= MAX_PAGES:
+            next_link = next_elem["href"]
+            current_page += 1
+            time.sleep(10)  # trying to prevent rate limiting...
+            parse_bookmark_page(session, BASE_URL + next_link, current_page)
 
     return
 
 
-def get_all_bookmarks(session):
+def get_all_bookmarks(session=None):
 
     current_page = 1
     bookmarks_url = USERS_URL + f"/bookmarks?page={current_page}"
@@ -150,3 +159,8 @@ def get_all_bookmarks(session):
     print(f"[INFO] Bookmarks gathered. Now writing to file.")
     with open(f"./stat_output/{TIMESTAMP}_bookmarks.json", "w", encoding="utf-8") as f:
         json.dump(bookmarks_dicts, f, indent=4)
+
+
+# left in for debugging
+# if __name__ == "__main__":
+#     get_all_bookmarks()

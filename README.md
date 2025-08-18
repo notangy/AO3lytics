@@ -1,14 +1,11 @@
 Special mention to [ao3-stats-exporter](https://github.com/Mircoxi/ao3-stats-exporter) for laying the groundwork for this project!
 
 A lightweight command line tool for those who use archiveofourown.org (aka AO3).
-Able to export both work and stat data from your statistics page.
+Able to export both work and stat data from your statistics page, as well as saving your bookmarks.
 
-<!--
-A lightweight command line tool and web dashboard for those who use archiveofourown.org (aka AO3). -->
-
-<!-- - Run the script on a schedule to gather consistent metrics from your own statistics, or just adhoc!
+- Run the script on a schedule to gather consistent metrics from your own statistics, or just adhoc!
 - Keep an offline record of your bookmarks: when a work you saved years ago ends up deleted, no more wondering what it was about 🤔
-- See graphs of your own statistics: fandom breakdowns by year, word count growth, etc -->
+<!-- - See graphs of your own statistics: fandom breakdowns by year, word count growth, etc -->
 
 <!-- # How is data gathered & stored?
 
