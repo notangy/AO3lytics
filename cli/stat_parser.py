@@ -5,45 +5,10 @@ from bs4 import BeautifulSoup
 
 from dataclasses import dataclass, asdict
 
-from consts import USERS_URL, TIMESTAMP
+from consts import USERS_URL, TIMESTAMP, WorkStats
 from utils import safe_request, extract_work_id
 
 all_works = []
-
-
-# Each story is a work
-@dataclass
-class Work:
-    id: str
-    title: str
-    fandoms: list
-    kudos: int
-    word_count: int
-    hits: int
-    subscriptions: int
-    bookmarks: int
-    comment_threads: int
-
-    # Convert object list to dict for json export
-    def to_dict(self):
-        data = asdict(self)
-        return data
-
-
-# Save global user stats here
-@dataclass
-class User:
-    user_subscriptions: int
-    kudos: int
-    comment_threads: int
-    bookmarks: int
-    subscriptions: int
-    word_count: int
-    hits: int
-
-    def to_dict(self):
-        data = asdict(self)
-        return data
 
 
 def get_stats(session):
@@ -149,7 +114,7 @@ def get_stats(session):
 
         # Now that we've gathered all the stats of a given work...
 
-        work = Work(
+        work = WorkStats(
             work_id,
             title,
             fandom,
