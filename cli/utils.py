@@ -1,5 +1,13 @@
 import time
 import requests
+import re
+
+
+def extract_work_id(link):
+    # Match the work ID after /works/ in the URL
+    match = re.search(r"/works/(\d+)", link)
+    if match:
+        return match.group(1)
 
 
 # Built in retries & backoff

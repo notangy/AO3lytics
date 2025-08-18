@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 from dataclasses import dataclass, asdict
 
 from consts import USERS_URL, TIMESTAMP
-from utils import safe_request
+from utils import safe_request, extract_work_id
 
 all_works = []
 
@@ -109,17 +109,12 @@ def get_stats(session):
     for item in stat_items:
         # These are the actual stats for each work
 
-        work_id = ""  # placeholder value: we need to extract it from the work URL
-
         work_link_elem = item.find("a")
         title = work_link_elem.text
 
         work_link = work_link_elem.get("href")
 
-        # Match the work ID after /works/ in the URL
-        match = re.search(r"/works/(\d+)", work_link)
-        if match:
-            work_id = match.group(1)
+        work_id = extract_work_id(work_link)
 
         fandom = (
             item.find("span", attrs={"class": "fandom"})
