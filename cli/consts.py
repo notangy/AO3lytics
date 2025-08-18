@@ -1,6 +1,10 @@
 import os
 import time
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 USERNAME = os.getenv("AO3_USERNAME", "")
 PASSWORD = os.getenv("AO3_PASSWORD", "")
 

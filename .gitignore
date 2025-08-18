@@ -5,3 +5,5 @@ tree.txt
 works.json
 
 cli/stat_output/*
+
+cli/__pycache__/*

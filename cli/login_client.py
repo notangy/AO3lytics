@@ -2,7 +2,7 @@ import requests
 import time
 from bs4 import BeautifulSoup
 from utils import safe_request
-from consts import LOGIN_URL, USERNAME, PASSWORD, safe_request
+from consts import LOGIN_URL, USERNAME, PASSWORD
 
 
 def login(session):
