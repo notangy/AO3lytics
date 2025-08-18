@@ -121,9 +121,6 @@ def parse_bookmark_page(session, url, current_page):
 
     bookmark_soup = BeautifulSoup(bookmarks_request.text, "lxml")
 
-    with open("./bookmarks_test.html") as fp:
-        bookmark_soup = BeautifulSoup(fp, "lxml")
-
     # Go through all works on this page
     bookmarks = bookmark_soup.find_all("li", attrs={"class": "bookmark"})
     for b in bookmarks:
