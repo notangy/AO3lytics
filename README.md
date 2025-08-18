@@ -12,8 +12,8 @@ Able to export both work and stat data from your statistics page, as well as sav
 
 There are two parts to the CLI tool:
 
-    - stat_parser: logs into your account and parses the HTML from your statistics page, saving both your user and work stats as JSON.
-    - bookmark_savior: visits your bookmarks page and parses the HTML, visiting each page up to a certain limit (this can be changed in the code) and saving the results as JSON.
+- stat_parser: logs into your account and parses the HTML from your statistics page, saving both your user and work stats as JSON.
+- bookmark_savior: visits your bookmarks page and parses the HTML, visiting each page up to a certain limit (this can be changed in the code) and saving the results as JSON.
 
 Each resulting file is named in the folder `cli/stat_output` with a timestamp of when it was created, allowing you to gather snapshots of both pages over time.
 
@@ -24,9 +24,9 @@ AO3_USERNAME =
 AO3_PASSWORD =
 ```
 
-The script needs these credentials in order to login. Then run:
+The script needs these credentials in order to login. Then from within the directory run:
 
-    python3 cly/ao3lytics.py
+    python3 cli/ao3lytics.py
 
 Pass in optional arguments `--skip_stats` or `--skip_bookmarks` if you want to skip over those steps.
 
