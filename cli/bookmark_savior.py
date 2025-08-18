@@ -120,9 +120,10 @@ def parse_bookmark_html(soup):
 
 def parse_bookmark_page(session, url, current_page):
 
-    if current_page > MAX_PAGES:
-        return True  # stop recursion if max pages reached
     print(f"[INFO] Searching bookmarks: page {current_page}.")
+
+    if current_page > MAX_PAGES:
+        return  # stop recursion if max pages reached
 
     bookmarks_request = safe_request(session, url, current_page)
     if bookmarks_request.status_code != 200:
@@ -135,18 +136,18 @@ def parse_bookmark_page(session, url, current_page):
     for b in bookmarks:
         parse_bookmark_html(b)
 
-        next_elem = bookmark_soup.find("a", string=re.compile(r"^\s*Next"))
-        # If the 'Next ->' button is a link, more than one page exists
-        if next_elem and current_page <= MAX_PAGES:
-            next_link = next_elem["href"]
-            current_page += 1
-            time.sleep(10)  # trying to prevent rate limiting...
-            parse_bookmark_page(session, BASE_URL + next_link, current_page)
+    next_elem = bookmark_soup.find("a", string=re.compile(r"^\s*Next"))
+    # If the 'Next ->' button is a link, more than one page exists
+    if next_elem and current_page <= MAX_PAGES:
+        next_link = next_elem["href"]
+        current_page += 1
+        time.sleep(10)  # trying to prevent rate limiting...
+        parse_bookmark_page(session, BASE_URL + next_link, current_page)
 
     return
 
 
-def get_all_bookmarks(session=None):
+def get_all_bookmarks(session):
 
     current_page = 1
     bookmarks_url = USERS_URL + f"/bookmarks?page={current_page}"
@@ -162,5 +163,6 @@ def get_all_bookmarks(session=None):
 
 
 # left in for debugging
-# if __name__ == "__main__":
-#     get_all_bookmarks()
+if __name__ == "__main__":
+    session = requests.Session()
+    get_all_bookmarks(session)
