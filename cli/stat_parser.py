@@ -182,7 +182,7 @@ def get_stats(session):
     stat_box = stat_soup.find("ul", class_="statistics index group")
 
     # class=None is a required check; otherwise we only grab the first stat entry
-    stat_items = stat_box.findChildren("dl", attrs={"class": None})
+    stat_items = stat_box.find_all("dl", attrs={"class": None})
 
     for item in stat_items:
         # These are the actual stats for each work
@@ -247,8 +247,9 @@ def get_stats(session):
 
     works_dicts = [work.to_dict() for work in all_works]
 
+    print(f"[INFO] Stats gathered for {timestamp}. Now writing to file.")
     # Eventually this info will be pushed to a database, but for now I just want it in a file
-    with open(f"{timestamp}_work_stats.json", "w", encoding="utf-8") as f:
+    with open(f"./stat_output/{timestamp}_work_stats.json", "w", encoding="utf-8") as f:
         json.dump(works_dicts, f, indent=4)
 
 
