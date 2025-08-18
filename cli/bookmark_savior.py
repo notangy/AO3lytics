@@ -1,5 +1,6 @@
 import json
 import re
+import time
 import requests
 from bs4 import BeautifulSoup
 
@@ -43,105 +44,113 @@ def gather_tags(soup, target_class):
     return tags
 
 
-def get_bookmarks(session=None):
+def parse_bookmark_html(soup):
+    # title & author heading
+    heading = soup.find("h4", class_="heading")
+    links = heading.find_all("a")
+    # First <a> = title
+    title = links[0].get_text(strip=True)
 
-    # bookmarks_url = USERS_URL + "/bookmarks"
+    work_link = links[0].get("href")
 
-    # bookmarks_request = safe_request(session, bookmarks_url)
+    work_id = extract_work_id(work_link)
 
-    # if bookmarks_request.status_code != 200:
-    #     raise requests.exceptions.RequestException("AO3 is experiencing issues!")
+    # Remaining <a>s = authors
+    authors = [a.get_text(strip=True) for a in links[1:]]
 
-    # bookmark_soup = BeautifulSoup(bookmarks_request.text, "lxml")
+    # fandom tags
+    fandoms_heading = soup.find("h5", class_="fandoms")
+    fandoms = [a.get_text(strip=True) for a in fandoms_heading.find_all("a")]
+
+    required_tags = soup.find_all("a", attrs={"title": "Symbols key"})
+
+    rating = required_tags[0].text
+    warnings = required_tags[1].text
+    category = required_tags[2].text
+
+    complete = False
+    if required_tags[3].text == "Complete Work":
+        complete = True
+
+    # Gathering other tags
+
+    relationships = gather_tags(soup, "relationships")
+    characters = gather_tags(soup, "characters")
+    tags = gather_tags(soup, "freeforms")
+
+    summary = safe_text(soup, "blockquote.userstuff.summary")
+
+    language = safe_text(soup, "dd.language")
+    word_count = safe_text(soup, "dd.words")
+    kudos = safe_text(soup, "dd.kudos")
+    hits = safe_text(soup, "dd.hits")
+
+    current_chapters = safe_text(b, "dd.chapters")
+
+    bookmark = WorkDetails(
+        work_id,
+        title,
+        fandoms,
+        kudos,
+        word_count,
+        hits,
+        authors,
+        rating,
+        warnings,
+        category,
+        complete,
+        relationships,
+        characters,
+        tags,
+        summary,
+        current_chapters,
+        language,
+    )
+
+    all_bookmarks.append(bookmark)
+
+
+def parse_bookmark_page(session, url, current_page):
+
+    if current_page > MAX_PAGES:
+        return True  # stop recursion if max pages reached
+
+    bookmarks_request = safe_request(session, url, current_page)
+    if bookmarks_request.status_code != 200:
+        raise requests.exceptions.RequestException("AO3 is experiencing issues!")
+
+    bookmark_soup = BeautifulSoup(bookmarks_request.text, "lxml")
 
     with open("./bookmarks_test.html") as fp:
         bookmark_soup = BeautifulSoup(fp, "lxml")
 
-    current_page = 1
-    next_link = None
+    # Go through all works on this page
+    bookmarks = bookmark_soup.find_all("li", attrs={"class": "bookmark"})
+    for b in bookmarks:
+        parse_bookmark_html(b)
 
     next_elem = bookmark_soup.find("a", string=re.compile(r"^\s*Next"))
-
     # If the 'Next ->' button is a link, more than one page exists
-    if next_elem:
+    if next_elem and current_page <= MAX_PAGES:
         next_link = next_elem["href"]
+        current_page += 1
+        time.sleep(2)  # prevent rate limiting
+        parse_bookmark_page(session, next_link, current_page)
 
-    # Go through all works on this page
+    return
 
-    bookmarks = bookmark_soup.find_all("li", attrs={"class": "bookmark"})
 
-    for b in bookmarks:
+def get_all_bookmarks(session):
 
-        # title & author heading
-        heading = b.find("h4", class_="heading")
-        links = heading.find_all("a")
-        # First <a> = title
-        title = links[0].get_text(strip=True)
+    current_page = 1
+    bookmarks_url = USERS_URL + f"/bookmarks?page={current_page}"
+    finished = False
 
-        work_link = links[0].get("href")
-
-        work_id = extract_work_id(work_link)
-
-        # Remaining <a>s = authors
-        authors = [a.get_text(strip=True) for a in links[1:]]
-
-        # fandom tags
-        fandoms_heading = b.find("h5", class_="fandoms")
-        fandoms = [a.get_text(strip=True) for a in fandoms_heading.find_all("a")]
-
-        required_tags = b.find_all("a", attrs={"title": "Symbols key"})
-
-        rating = required_tags[0].text
-        warnings = required_tags[1].text
-        category = required_tags[2].text
-
-        complete = False
-        if required_tags[3].text == "Complete Work":
-            complete = True
-
-        # Gathering other tags
-
-        relationships = gather_tags(b, "relationships")
-        characters = gather_tags(b, "characters")
-        tags = gather_tags(b, "freeforms")
-
-        summary = safe_text(b, "blockquote.userstuff.summary")
-
-        language = safe_text(b, "dd.language")
-        word_count = safe_text(b, "dd.words")
-        kudos = safe_text(b, "dd.kudos")
-        hits = safe_text(b, "dd.hits")
-
-        current_chapters = safe_text(b, "dd.chapters")
-
-        bookmark = WorkDetails(
-            work_id,
-            title,
-            fandoms,
-            kudos,
-            word_count,
-            hits,
-            authors,
-            rating,
-            warnings,
-            category,
-            complete,
-            relationships,
-            characters,
-            tags,
-            summary,
-            current_chapters,
-            language,
-        )
-
-        all_bookmarks.append(bookmark)
+    # Recursive function will go through all bookmark pages up to limit
+    parse_bookmark_page(session, bookmarks_url, current_page)
 
     bookmarks_dicts = [bookmark.to_dict() for bookmark in all_bookmarks]
     # save bookmarks to file
     print(f"[INFO] Bookmarks gathered. Now writing to file.")
     with open(f"./stat_output/{TIMESTAMP}_bookmarks.json", "w", encoding="utf-8") as f:
         json.dump(bookmarks_dicts, f, indent=4)
-
-
-if __name__ == "__main__":
-    get_bookmarks()

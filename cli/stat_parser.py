@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 
 from dataclasses import dataclass, asdict
 
-from consts import USERS_URL, TIMESTAMP, WorkStats
+from consts import USERS_URL, TIMESTAMP, WorkStats, User
 from utils import safe_request, extract_work_id
 
 all_works = []
