@@ -3,3 +3,5 @@ notes.txt
 tree.txt
 .DS_Store
 works.json
+
+cli/stat_output/*
