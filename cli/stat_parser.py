@@ -3,20 +3,11 @@ import re
 import requests
 from bs4 import BeautifulSoup
 import time
-import os
-from dotenv import load_dotenv
+
 from dataclasses import dataclass, asdict
 
-load_dotenv()
+from ao3lytics import USERS_URL, USERNAME, safe_request
 
-USERNAME = os.getenv("AO3_USERNAME", "")
-PASSWORD = os.getenv("AO3_PASSWORD", "")
-DEBUG_MODE = bool(os.getenv("DEBUG_MODE", 0))
-
-base_url = "https://archiveofourown.org"
-users_url = base_url + "/users/"
-
-login_url = base_url + "/users/login"
 
 all_works = []
 
@@ -43,7 +34,7 @@ class Work:
         return data
 
 
-# save global stats here
+# Save global user stats here
 @dataclass
 class User:
     user_subscriptions: int
@@ -59,69 +50,6 @@ class User:
         return data
 
 
-# Built in retries & backoff
-def safe_request(
-    session,
-    url,
-    max_retries=3,
-    method="GET",
-    data=None,
-    backoff=5,
-):
-    for attempt in range(1, max_retries + 1):
-        try:
-            if method.upper() == "GET":
-                response = session.get(url)
-            elif method.upper() == "POST":
-                response = session.post(url, data=data)
-            else:
-                raise ValueError("Unsupported method: only 'GET' or 'POST' allowed")
-
-            response.raise_for_status()  # Raises HTTPError for bad responses
-            return response
-
-        except requests.exceptions.RequestException as e:
-            print(f"Attempt {attempt} failed: {e}")
-            # Reset session after failure
-            session.close()
-            session = requests.Session()
-            time.sleep(backoff**attempt)
-
-    print("All retries failed.")
-    return None
-
-
-def login(session):
-
-    request = safe_request(session, login_url)
-
-    # html of login page
-    login_soup = BeautifulSoup(request.text, features="html.parser")
-    auth_token = login_soup.find("input", {"name": "authenticity_token"})["value"]
-
-    print("[INFO] Attempting login...")
-
-    login_attempt = safe_request(
-        session,
-        login_url,
-        method="POST",
-        data={
-            "authenticity_token": auth_token,
-            "user[login]": USERNAME,
-            "user[password]": PASSWORD,
-        },
-    )
-
-    time.sleep(2)  # Give AO3 time to load
-
-    if login_attempt.status_code != 200:
-        raise requests.exceptions.RequestException("AO3 is experiencing issues!")
-    if "Please try again" in login_attempt.text:
-        raise RuntimeError("Error logging in - wrong username and password.")
-
-    print("[INFO] Login successful!")
-
-
 def get_stats(session):
     """
     AO3 has no publically available API, so we must do things the old fashioned way...
@@ -130,9 +58,7 @@ def get_stats(session):
     All data gathered here is fed into a local database with timestamps
     """
 
-    stats_url = (
-        users_url + USERNAME + "/stats?flat_view=true&sort_column=date&year=All+Years"
-    )
+    stats_url = USERS_URL + "/stats?flat_view=true&sort_column=date&year=All+Years"
 
     stats_request = safe_request(session, stats_url)
 
@@ -251,43 +177,3 @@ def get_stats(session):
     # Eventually this info will be pushed to a database, but for now I just want it in a file
     with open(f"./stat_output/{timestamp}_work_stats.json", "w", encoding="utf-8") as f:
         json.dump(works_dicts, f, indent=4)
-
-
-if __name__ == "__main__":
-
-    # Keep track of whether the last result was a failure or not (prevent login blocking)
-    previous_error = False
-
-    print(
-        """
-    =================
-          
-    ▄▖▄▖▄▖▖ ▖▖▄▖▄▖▄▖▄▖
-    ▌▌▌▌▄▌▌ ▌▌▐ ▐ ▌ ▚ 
-    ▛▌▙▌▄▌▙▖▐ ▐ ▟▖▙▖▄▌
-          
-    =================
-                       
-        """
-    )
-    try:
-        session = requests.Session()
-        login(session)
-        get_stats(session)
-        if previous_error is True:
-            print("AO3 back up! Got stats and resuming normal functions.")
-            previous_error = False
-            if DEBUG_MODE is True:
-                print("Got stats! Sleeping 30 minutes...")
-            time.sleep(1800)
-    except RuntimeError:
-        # Throw an error and quit.
-        print("Login failed! Your creds might be wrong :/")
-        exit(1)
-    except requests.exceptions.RequestException:
-        # AO3 likely experiencing issues. Sleep, but not as long so that stats update in a timely
-        # fashion when it comes back.
-        print(
-            "AO3 is experiencing issues! Backing off for a while... We'll check again in 10 minutes."
-        )
-        previous_error = True
