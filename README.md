@@ -19,12 +19,14 @@ Each resulting file is named in the folder `cli/stat_output` with a timestamp of
 
 To run the tool, make sure you have a .env file with the following information:
 
+```
 AO3_USERNAME =
 AO3_PASSWORD =
+```
 
 The script needs these credentials in order to login. Then run:
 
-    `python3 cly/ao3lytics.py`
+    python3 cly/ao3lytics.py
 
 Pass in optional arguments `--skip_stats` or `--skip_bookmarks` if you want to skip over those steps.
 
