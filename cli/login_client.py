@@ -7,6 +7,8 @@ from consts import LOGIN_URL, USERNAME, PASSWORD
 
 def login(session):
 
+    print("[INFO] Retrieving login page...")
+
     request = safe_request(session, LOGIN_URL)
 
     # html of login page

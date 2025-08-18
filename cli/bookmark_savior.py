@@ -85,7 +85,7 @@ def parse_bookmark_html(soup):
     kudos = safe_text(soup, "dd.kudos")
     hits = safe_text(soup, "dd.hits")
 
-    current_chapters = safe_text(b, "dd.chapters")
+    current_chapters = safe_text(soup, "dd.chapters")
 
     bookmark = WorkDetails(
         work_id,
@@ -131,7 +131,7 @@ def parse_bookmark_page(session, url, current_page):
     if next_elem and current_page <= MAX_PAGES:
         next_link = next_elem["href"]
         current_page += 1
-        time.sleep(2)  # prevent rate limiting
+        time.sleep(5)  # trying to prevent rate limiting...
         parse_bookmark_page(session, next_link, current_page)
 
     return
@@ -141,7 +141,6 @@ def get_all_bookmarks(session):
 
     current_page = 1
     bookmarks_url = USERS_URL + f"/bookmarks?page={current_page}"
-    finished = False
 
     # Recursive function will go through all bookmark pages up to limit
     parse_bookmark_page(session, bookmarks_url, current_page)
