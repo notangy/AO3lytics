@@ -5,7 +5,7 @@ import requests
 from bs4 import BeautifulSoup
 
 
-from consts import USERS_URL, TIMESTAMP, WorkDetails
+from consts import BASE_URL, USERS_URL, TIMESTAMP, WorkDetails
 
 from utils import safe_request, extract_work_id
 
@@ -132,7 +132,7 @@ def parse_bookmark_page(session, url, current_page):
         next_link = next_elem["href"]
         current_page += 1
         time.sleep(5)  # trying to prevent rate limiting...
-        parse_bookmark_page(session, next_link, current_page)
+        parse_bookmark_page(session, BASE_URL + next_link, current_page)
 
     return
 
