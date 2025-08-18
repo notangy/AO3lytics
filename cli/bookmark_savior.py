@@ -162,7 +162,7 @@ def get_all_bookmarks(session):
         json.dump(bookmarks_dicts, f, indent=4)
 
 
-# left in for debugging
+#  Since you don't need to be logged in to see your bookmarks, you can run this script on its own!
 if __name__ == "__main__":
     session = requests.Session()
     get_all_bookmarks(session)
