@@ -57,16 +57,14 @@ def get_all_stats():
             matched = False
 
             for s in stat_groups:
-                print(s)
-                print(entry)
                 if s in entry.lower():
                     with open(full_path, "r", encoding="utf-8") as f:
                         stats[s] = json.load(f)
-                        matched = True
-                        break
+                    matched = True
+                    break
 
-                if not matched:
-                    print(f"Unable to categorise file {entry}, skipping...")
+            if not matched:
+                print(f"Unable to categorise file {entry}, skipping...")
 
         return (
             jsonify(stats),
