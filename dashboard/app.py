@@ -28,7 +28,6 @@ And load in the relevant files in those folders
 
 @app.route("/")
 def index():
-    # TODO return stats here
     return render_template("index.html", username=username, stats=None)
 
 
@@ -37,7 +36,7 @@ def index():
 @app.route("/api/stats")
 def get_all_stats():
 
-    date = request.args.get("date")  # reads ?date=...
+    date = request.args.get("date")  # searches for ?date=...
 
     if not date:
         return jsonify({"error": "No date provided"}), 400
@@ -70,7 +69,7 @@ def get_all_stats():
             200,
         )
     else:
-        return jsonify({"error": "Stats not found"}), 400
+        return jsonify({"error": f"Stats not found for date {date}"}), 400
 
 
 if __name__ == "__main__":
