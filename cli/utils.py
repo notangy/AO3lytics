@@ -1,6 +1,8 @@
 import time
 import requests
 import re
+import os
+from consts import OUTPUT_DIR
 
 
 def extract_work_id(link):
@@ -40,3 +42,7 @@ def safe_request(
 
     print("All retries failed.")
     return None
+
+
+def write_output(filename):
+    return os.path.join(OUTPUT_DIR, filename)
