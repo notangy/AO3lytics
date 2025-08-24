@@ -2,7 +2,6 @@ import json
 from flask import Flask, render_template, request, jsonify
 from dotenv import load_dotenv
 import os
-from os.path import isfile, join
 
 app = Flask(__name__)
 load_dotenv()
