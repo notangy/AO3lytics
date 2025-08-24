@@ -1,14 +1,16 @@
 import json
-import re
 import requests
 from bs4 import BeautifulSoup
+import os
 
-from dataclasses import dataclass, asdict
-
-from consts import USERS_URL, TIMESTAMP, WorkStats, User
+from consts import USERS_URL, TIMESTAMP, OUTPUT_DIR, WorkStats, User
 from utils import safe_request, extract_work_id
 
+
 all_works = []
+
+filename = f"{TIMESTAMP}_work_stats.json"
+filepath = os.path.join(OUTPUT_DIR, filename)
 
 
 def get_stats(session):
@@ -131,5 +133,5 @@ def get_stats(session):
 
     print(f"[INFO] Stats gathered for {TIMESTAMP}. Now writing to file.")
     # Eventually this info will be pushed to a database, but for now I just want it in a file
-    with open(f"./stat_output/{TIMESTAMP}_work_stats.json", "w", encoding="utf-8") as f:
+    with open(filepath, "w", encoding="utf-8") as f:
         json.dump(works_dicts, f, indent=4)

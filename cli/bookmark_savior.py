@@ -3,10 +3,9 @@ import re
 import time
 import requests
 from bs4 import BeautifulSoup
+import os
 
-
-from consts import BASE_URL, USERS_URL, TIMESTAMP, Bookmark
-
+from consts import BASE_URL, USERS_URL, TIMESTAMP, OUTPUT_DIR, Bookmark
 from utils import safe_request, extract_work_id
 
 
@@ -14,6 +13,9 @@ from utils import safe_request, extract_work_id
 # If a work is deleted from the source, this will at least hold details about what was there.
 
 all_bookmarks = []
+
+filename = f"{TIMESTAMP}_bookmarks.json"
+filepath = os.path.join(OUTPUT_DIR, filename)
 
 MAX_PAGES = 5  # Default value to prevent overload on AO3.
 # Change if you have more than 5 pages to save, but be prepared to run into rate limits...
@@ -158,7 +160,7 @@ def get_all_bookmarks(session):
     bookmarks_dicts = [bookmark.to_dict() for bookmark in all_bookmarks]
     # save bookmarks to file
     print(f"[INFO] Bookmarks gathered. Now writing to file.")
-    with open(f"./stat_output/{TIMESTAMP}_bookmarks.json", "w", encoding="utf-8") as f:
+    with open(filepath, "w", encoding="utf-8") as f:
         json.dump(bookmarks_dicts, f, indent=4)
 
 

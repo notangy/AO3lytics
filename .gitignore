@@ -4,6 +4,8 @@ tree.txt
 .DS_Store
 works.json
 
+/venv/*
+
 cli/stat_output/*
 
 cli/__pycache__/*

@@ -1,5 +1,5 @@
 import os
-import time
+from datetime import datetime
 
 from dotenv import load_dotenv
 from dataclasses import dataclass, asdict
@@ -13,7 +13,15 @@ BASE_URL = "https://archiveofourown.org"
 USERS_URL = BASE_URL + "/users/" + USERNAME
 LOGIN_URL = BASE_URL + "/users/login"
 
-TIMESTAMP = time.strftime("%Y-%m-%d_%H-%M-%S")
+# create a timestamped folder inside ./stat_output
+DATE_FOLDER = datetime.now().strftime("%Y-%m-%d")
+OUTPUT_DIR = os.path.join("stat_output", DATE_FOLDER)
+
+# make sure the stat_output directory exists
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+# will be used to name each file
+TIMESTAMP = datetime.now().strftime("%Y%m%d_%H%M%S")
 
 
 # Save global user stats here
