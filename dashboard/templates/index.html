@@ -17,7 +17,11 @@
     </nav>
 
     <div class="container mt-4">
-      <h1 class="display-5">AO3lytics!</h1>
+      {% if username %}
+      <h1 class="display-5">Hi, {{username}}!</h1>
+      {% else %}
+      <h1 class="display-5">Welcome!</h1>
+      {% endif %}
       <p class="lead">
         Here you'll be able to track and visualize your Archive of Our Own
         stats.
