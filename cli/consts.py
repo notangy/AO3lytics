@@ -21,7 +21,7 @@ OUTPUT_DIR = os.path.join("stat_output", DATE_FOLDER)
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 # will be used to name each file
-TIMESTAMP = datetime.now().strftime("%Y%m%d_%H%M%S")
+TIMESTAMP = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
 
 # Save global user stats here

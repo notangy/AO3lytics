@@ -6,6 +6,6 @@ works.json
 
 /venv/*
 
-cli/stat_output/*
+/stat_output/*
 
 cli/__pycache__/*
